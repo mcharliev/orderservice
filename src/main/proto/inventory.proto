@@ -3,14 +3,15 @@ syntax = "proto3";
 package inventory;
 
 service InventoryService {
-  rpc CheckProductAvailability (CheckAvailabilityRequest) returns (CheckAvailabilityResponse) {}
+  rpc CheckInventory (CheckInventoryRequest) returns (CheckInventoryResponse) {}
 }
 
-message CheckAvailabilityRequest {
+message CheckInventoryRequest {
   string productName = 1;
   int32 quantity = 2;
 }
 
-message CheckAvailabilityResponse {
+message CheckInventoryResponse {
   bool available = 1;
+  string message = 2;
 }

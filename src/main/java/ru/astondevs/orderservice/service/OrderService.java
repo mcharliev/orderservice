@@ -6,8 +6,8 @@ import ru.astondevs.orderservice.dto.CreateOrderDto;
 import ru.astondevs.orderservice.dto.OrderResponse;
 import ru.astondevs.orderservice.dto.OrderUpdateDto;
 import ru.astondevs.orderservice.entity.Order;
-import ru.astondevs.orderservice.entity.User;
-import ru.astondevs.orderservice.kafka.KafkaOrderProducer;
+import ru.astondevs.orderservice.exception.NotEnoughProductException;
+import ru.astondevs.orderservice.kafka.OrderProcessor;
 import ru.astondevs.orderservice.repository.OrderRepository;
 
 import java.time.LocalDateTime;
@@ -15,14 +15,17 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    private final UserService userService;
     private final OrderRepository orderRepository;
-    private final KafkaOrderProducer kafkaOrderProducer;
+    private final InventoryServiceClient inventoryServiceClient;
+
+    private final OrderProcessor orderProcessor;
 
     public OrderResponse createOrder(CreateOrderDto dto) {
-        User user = userService.findUserById(dto.getUserId());
+        boolean isAvailable = inventoryServiceClient.checkProductAvailability(dto.getProductName(), dto.getQuantity());
+        if (!isAvailable) {
+            throw new NotEnoughProductException();
+        }
         Order order = new Order();
-        order.setUser(user);
         order.setOrderTime(LocalDateTime.now());
         order.setItem(dto.getProductName());
         order.setQuantity(dto.getQuantity());
@@ -33,11 +36,9 @@ public class OrderService {
         orderUpdateDto.setProductName(order.getItem());
         orderUpdateDto.setQuantity(order.getQuantity());
 
-        kafkaOrderProducer.sendOrderMessage(orderUpdateDto);
-
+        orderProcessor.processOrder(orderUpdateDto);
         return buildOrderResponse(order);
     }
-
 
     private OrderResponse buildOrderResponse(Order order) {
         OrderResponse response = new OrderResponse();

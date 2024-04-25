@@ -8,12 +8,14 @@ import ru.astondevs.orderservice.dto.OrderUpdateDto;
 
 @Component
 @RequiredArgsConstructor
-public class KafkaOrderProducer {
-    private final KafkaTemplate<String, OrderUpdateDto> kafkaTemplate;
-    @Value("${spring.kafka.template.default-topic}")
-    private String ordersTopic;
+public class OrderProcessor {
 
-    public void sendOrderMessage(OrderUpdateDto message) {
-        kafkaTemplate.send(ordersTopic, message);
+    private final KafkaTemplate<String, OrderUpdateDto> kafkaTemplate;
+
+    @Value("${spring.kafka.template.default-topic}")
+    private String orderTopic;
+
+    public void processOrder(OrderUpdateDto order) {
+        kafkaTemplate.send(orderTopic, order);
     }
 }

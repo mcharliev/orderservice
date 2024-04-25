@@ -1,17 +1,18 @@
-version: "3.9"
+version: "3.5"
 
 services:
   pg_db:
-    image: postgres
+    image: postgres:14.10-alpine3.19
+    container_name: orderservice_db
     restart: always
     environment:
-      - POSTGRES_DB=microservices_db
+      - POSTGRES_DB=orderservice
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=353062
+    ports:
+      - "5434:5432"
     volumes:
       - db:/var/lib/postgresql/data postgres
-    ports:
-      - "5420:5432"
 
 volumes:
   db:
